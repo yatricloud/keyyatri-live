@@ -8,10 +8,12 @@ Welcome to the KeyYatri Password Manager documentation. This guide will help you
 - [Setup](#setup)
 - [Usage](#usage)
 - [Contributing](#contributing)
+- [Node.js Documentation](NodeJS.md)
+- [Supabase Documentation](Supabase.md)
 
 ## Introduction
 
-KeyYatri is a secure password manager built with React, Node.js, and Supabase. It provides a clean, user-friendly interface for storing and managing your passwords with strong encryption.
+KeyYatri is a secure password manager built with React, Node.js, and Supabase. It provides a clean, user-friendly interface for storing and managing your passwords with strong encryption. Additionally, we have included detailed documentation on Node.js and Supabase to help you understand the technologies used in this project.
 
 ## Setup
 
