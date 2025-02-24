@@ -4,6 +4,7 @@ export interface Credential {
   name: string;
   username: string;
   encrypted_password: string;
+  password: string;
   description?: string;
   created_at: string;
   updated_at: string;

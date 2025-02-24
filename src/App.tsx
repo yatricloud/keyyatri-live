@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { Key, Lock, LogOut, Plus, Search } from 'lucide-react';
+import { Lock, Plus, Search, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { CredentialForm } from './components/CredentialForm';
+import { EditCredentialForm } from './components/EditCredentialForm';
+import { SignupForm } from './components/SignupForm';
+import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
+import { ProfileMenu } from './components/ProfileMenu';
+import { EditProfileModal } from './components/EditProfileModal';
 import { encryptData, decryptData } from './lib/encryption';
 import type { Credential, User } from './types';
 
@@ -10,10 +15,18 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showSignupForm, setShowSignupForm] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [masterKey, setMasterKey] = useState('');
   const [showMasterKeyPrompt, setShowMasterKeyPrompt] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [showMasterKeyError, setShowMasterKeyError] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [editingCredential, setEditingCredential] = useState<(Credential & { password: string }) | null>(null);
+  const [deletingCredential, setDeletingCredential] = useState<Credential | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -22,8 +35,10 @@ function App() {
           id: session.user.id,
           email: session.user.email!
         });
-        setShowMasterKeyPrompt(true);
+        checkMasterKey(session.user.id);
       }
+      setIsInitializing(false);
+      setIsAuthChecking(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -32,16 +47,109 @@ function App() {
           id: session.user.id,
           email: session.user.email!
         });
-        setShowMasterKeyPrompt(true);
+        checkMasterKey(session.user.id);
       } else {
         setUser(null);
         setCredentials([]);
         setMasterKey('');
+        setIsNewUser(false);
+        setShowMasterKeyPrompt(false);
       }
+      setIsInitializing(false);
+      setIsAuthChecking(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkMasterKey = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('master_keys')
+        .select('encrypted_key')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      setIsNewUser(!data);
+      setShowMasterKeyPrompt(true);
+      if (!data) {
+        toast.success('Welcome! Please set up your master key.');
+      }
+    } catch (error) {
+      console.error('Error checking master key:', error);
+      setShowMasterKeyPrompt(true);
+      setIsNewUser(true);
+    }
+  };
+
+  const verifyMasterKey = async (key: string, userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('master_keys')
+        .select('encrypted_key')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        try {
+          const decryptedStoredKey = decryptData(data.encrypted_key, key);
+          return decryptedStoredKey === key;
+        } catch {
+          return false;
+        }
+      }
+      return true; // New user, no verification needed
+    } catch {
+      return false;
+    }
+  };
+
+  const saveMasterKey = async (key: string, userId: string) => {
+    try {
+      const encryptedKey = encryptData(key, key);
+      
+      // First try to update existing record
+      const { data: existingKey, error: fetchError } = await supabase
+        .from('master_keys')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (existingKey) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('master_keys')
+          .update({ encrypted_key: encryptedKey })
+          .eq('user_id', userId);
+
+        if (updateError) throw updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('master_keys')
+          .insert([{ user_id: userId, encrypted_key: encryptedKey }]);
+
+        if (insertError) throw insertError;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error saving master key:', error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (user && masterKey) {
+      fetchCredentials();
+    }
+  }, [user, masterKey]);
 
   const fetchCredentials = async () => {
     if (!user || !masterKey) return;
@@ -67,6 +175,11 @@ function App() {
   };
 
   const handleLogin = async (email: string, password: string) => {
+    if (!email || !password) {
+      toast.error('Please enter both email and password');
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -76,27 +189,39 @@ function App() {
       toast.success('Logged in successfully');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Failed to login');
+      toast.error('Invalid email or password');
     }
   };
 
   const handleSignup = async (email: string, password: string) => {
+    if (!email || !password) {
+      toast.error('Please enter both email and password');
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password
       });
       if (error) throw error;
-      toast.success('Check your email to confirm your account');
+      setShowSignupForm(false);
+      toast.success('Account created! Please set up your master key.');
     } catch (error) {
       console.error('Signup error:', error);
-      toast.error('Failed to sign up');
+      toast.error('Failed to sign up. Please try again.');
     }
   };
 
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
+      setMasterKey('');
       toast.success('Logged out successfully');
     } catch (error) {
       console.error('Logout error:', error);
@@ -144,18 +269,97 @@ function App() {
     }
   };
 
+  const handleEditCredential = async (data: {
+    id: string;
+    name: string;
+    username: string;
+    password: string;
+    description?: string;
+    url?: string;
+  }) => {
+    if (!user || !masterKey) {
+      toast.error('Please set your master key first');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const encryptedPassword = encryptData(data.password, masterKey);
+      
+      const { error } = await supabase
+        .from('credentials')
+        .update({
+          name: data.name,
+          username: data.username,
+          encrypted_password: encryptedPassword,
+          description: data.description || null,
+          url: data.url || null
+        })
+        .eq('id', data.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Credential updated successfully');
+      setEditingCredential(null);
+      fetchCredentials();
+    } catch (error) {
+      console.error('Error updating credential:', error);
+      toast.error('Failed to update credential');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteCredential = async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('credentials')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Credential deleted successfully');
+      setDeletingCredential(null);
+      fetchCredentials();
+    } catch (error) {
+      console.error('Error deleting credential:', error);
+      toast.error('Failed to delete credential');
+    }
+  };
+
   const filteredCredentials = credentials.filter(cred =>
     cred.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cred.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (cred.description?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  if (isInitializing || isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <Toaster position="top-right" />
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
-            <Key className="h-12 w-12" />
+            <img 
+              src="https://raw.githubusercontent.com/yatricloud/yatri-images/5a903583d7a035e55b9dcbc71b87413760a30bff/Logo/YATRI%20CLOUD%20-%20BW%20-%20LOGO.svg"
+              alt="Yatri Cloud Logo"
+              className="h-16 w-auto"
+            />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             KeyYatri
@@ -200,6 +404,7 @@ function App() {
                     name="password"
                     type="password"
                     required
+                    minLength={6}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                   />
                 </div>
@@ -229,13 +434,7 @@ function App() {
 
               <div className="mt-6">
                 <button
-                  onClick={() => {
-                    const email = prompt('Enter your email');
-                    const password = prompt('Enter your password');
-                    if (email && password) {
-                      handleSignup(email, password);
-                    }
-                  }}
+                  onClick={() => setShowSignupForm(true)}
                   className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
                   Create new account
@@ -244,6 +443,13 @@ function App() {
             </div>
           </div>
         </div>
+
+        {showSignupForm && (
+          <SignupForm
+            onSubmit={handleSignup}
+            onCancel={() => setShowSignupForm(false)}
+          />
+        )}
       </div>
     );
   }
@@ -251,28 +457,50 @@ function App() {
   if (showMasterKeyPrompt) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <Toaster position="top-right" />
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
             <Lock className="h-12 w-12" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Enter Master Key
+            {isNewUser ? 'Set Master Key' : 'Enter Master Key'}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            This key will be used to encrypt and decrypt your passwords
+            {isNewUser 
+              ? 'Create a master key to encrypt your passwords. Remember this key as it cannot be recovered!'
+              : 'Enter your master key to access your passwords'}
           </p>
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
               if (masterKey.length < 8) {
                 toast.error('Master key must be at least 8 characters long');
                 return;
               }
+
+              if (!isNewUser) {
+                const isValid = await verifyMasterKey(masterKey, user.id);
+                if (!isValid) {
+                  setShowMasterKeyError(true);
+                  toast.error('Invalid master key');
+                  return;
+                }
+              }
+
+              const saved = await saveMasterKey(masterKey, user.id);
+              if (!saved) {
+                toast.error('Failed to save master key');
+                return;
+              }
+
               setShowMasterKeyPrompt(false);
-              fetchCredentials();
+              setShowMasterKeyError(false);
+              if (isNewUser) {
+                toast.success('Master key set successfully');
+              }
             }} className="space-y-6">
               <div>
                 <label htmlFor="masterKey" className="block text-sm font-medium text-gray-700">
@@ -284,11 +512,21 @@ function App() {
                     type="password"
                     required
                     minLength={8}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                    className={`appearance-none block w-full px-3 py-2 border ${
+                      showMasterKeyError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-gray-500 focus:border-gray-500'
+                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none sm:text-sm`}
                     value={masterKey}
-                    onChange={(e) => setMasterKey(e.target.value)}
+                    onChange={(e) => {
+                      setMasterKey(e.target.value);
+                      setShowMasterKeyError(false);
+                    }}
                   />
                 </div>
+                {showMasterKeyError && (
+                  <p className="mt-2 text-sm text-red-600">
+                    Incorrect master key. Please try again.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -314,19 +552,22 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Key className="h-8 w-8" />
+              <img 
+                src="https://raw.githubusercontent.com/yatricloud/yatri-images/5a903583d7a035e55b9dcbc71b87413760a30bff/Logo/YATRI%20CLOUD%20-%20BW%20-%20LOGO.svg"
+                alt="Yatri Cloud Logo"
+                className="h-8 w-auto"
+              />
               <h1 className="ml-2 text-2xl font-bold">KeyYatri</h1>
             </div>
-            <div className="flex items-center">
-              <span className="mr-4 text-gray-600">{user.email}</span>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </button>
-            </div>
+            {user && (
+              <div className="flex items-center">
+                <ProfileMenu
+                  email={user.email}
+                  onEditProfile={() => setShowEditProfile(true)}
+                  onLogout={handleLogout}
+                />
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -373,6 +614,35 @@ function App() {
             </div>
           )}
 
+          {editingCredential && (
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                <h2 className="text-lg font-medium mb-4">Edit Credential</h2>
+                <EditCredentialForm
+                  credential={editingCredential}
+                  onSubmit={handleEditCredential}
+                  onCancel={() => setEditingCredential(null)}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+          )}
+
+          {deletingCredential && (
+            <DeleteConfirmationModal
+              name={deletingCredential.name}
+              onConfirm={() => handleDeleteCredential(deletingCredential.id)}
+              onCancel={() => setDeletingCredential(null)}
+            />
+          )}
+
+          {showEditProfile && user && (
+            <EditProfileModal
+              email={user.email}
+              onClose={() => setShowEditProfile(false)}
+            />
+          )}
+
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <ul className="divide-y divide-gray-200">
               {filteredCredentials.map((credential) => (
@@ -387,12 +657,11 @@ function App() {
                           {credential.username}
                         </p>
                       </div>
-                      <div className="ml-4 flex-shrink-0">
+                      <div className="ml-4 flex-shrink-0 flex items-center space-x-2">
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(credential.password);
                             toast.success('Password copied to clipboard');
-                            // Clear clipboard after 30 seconds
                             setTimeout(() => {
                               navigator.clipboard.writeText('');
                             }, 30000);
@@ -400,6 +669,18 @@ function App() {
                           className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                         >
                           Copy Password
+                        </button>
+                        <button
+                          onClick={() => setEditingCredential(credential)}
+                          className="inline-flex items-center p-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeletingCredential(credential)}
+                          className="inline-flex items-center p-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
