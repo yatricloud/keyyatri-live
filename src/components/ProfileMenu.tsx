@@ -1,16 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UserCircle, Settings, LogOut } from 'lucide-react';
+import { UserCircle, Settings, LogOut, Trash2, MessageSquarePlus } from 'lucide-react';
 
 interface ProfileMenuProps {
   email: string;
   onEditProfile: () => void;
   onLogout: () => void;
+  onDeleteAccount: () => void;
+  onRequestFeature: () => void;
 }
 
 export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   email,
   onEditProfile,
   onLogout,
+  onDeleteAccount,
+  onRequestFeature,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -56,12 +60,34 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             <button
               onClick={() => {
                 setIsOpen(false);
+                onRequestFeature();
+              }}
+              className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+            >
+              <MessageSquarePlus className="h-5 w-5 mr-3 text-gray-500" />
+              Request Feature
+            </button>
+            <button
+              onClick={() => {
+                setIsOpen(false);
                 onLogout();
               }}
               className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
             >
               <LogOut className="h-5 w-5 mr-3 text-gray-500" />
               Logout
+            </button>
+          </div>
+          <div className="py-2">
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onDeleteAccount();
+              }}
+              className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+            >
+              <Trash2 className="h-5 w-5 mr-3 text-red-500" />
+              Delete Account
             </button>
           </div>
         </div>

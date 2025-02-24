@@ -8,6 +8,8 @@ import { SignupForm } from './components/SignupForm';
 import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 import { ProfileMenu } from './components/ProfileMenu';
 import { EditProfileModal } from './components/EditProfileModal';
+import { DeleteAccountModal } from './components/DeleteAccountModal';
+import { FeatureRequestModal } from './components/FeatureRequestModal';
 import { encryptData, decryptData } from './lib/encryption';
 import type { Credential, User } from './types';
 
@@ -27,6 +29,8 @@ function App() {
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [editingCredential, setEditingCredential] = useState<(Credential & { password: string }) | null>(null);
   const [deletingCredential, setDeletingCredential] = useState<Credential | null>(null);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [showFeatureRequest, setShowFeatureRequest] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -332,6 +336,53 @@ function App() {
     }
   };
 
+  const handleDeleteAccount = async (password: string) => {
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password
+      });
+
+      if (signInError) {
+        toast.error('Invalid password');
+        return;
+      }
+
+      // Delete all user data
+      if (user) {
+        const { error: deleteCredentialsError } = await supabase
+          .from('credentials')
+          .delete()
+          .eq('user_id', user.id);
+
+        if (deleteCredentialsError) throw deleteCredentialsError;
+
+        const { error: deleteMasterKeyError } = await supabase
+          .from('master_keys')
+          .delete()
+          .eq('user_id', user.id);
+
+        if (deleteMasterKeyError) throw deleteMasterKeyError;
+
+        // Delete the user account
+        const { error: deleteUserError } = await supabase.auth.admin.deleteUser(user.id);
+        if (deleteUserError) throw deleteUserError;
+
+        toast.success('Account deleted successfully');
+        handleLogout();
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error('Failed to delete account');
+    } finally {
+      setShowDeleteAccount(false);
+    }
+  };
+
+  const handleFeatureRequest = async () => {
+    setShowFeatureRequest(false);
+  };
+
   const filteredCredentials = credentials.filter(cred =>
     cred.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cred.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -565,6 +616,8 @@ function App() {
                   email={user.email}
                   onEditProfile={() => setShowEditProfile(true)}
                   onLogout={handleLogout}
+                  onDeleteAccount={() => setShowDeleteAccount(true)}
+                  onRequestFeature={() => setShowFeatureRequest(true)}
                 />
               </div>
             )}
@@ -643,6 +696,19 @@ function App() {
             />
           )}
 
+          {showDeleteAccount && (
+            <DeleteAccountModal
+              onConfirm={handleDeleteAccount}
+              onCancel={() => setShowDeleteAccount(false)}
+            />
+          )}
+
+          {showFeatureRequest && (
+            <FeatureRequestModal
+              onCancel={() => setShowFeatureRequest(false)}
+            />
+          )}
+
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <ul className="divide-y divide-gray-200">
               {filteredCredentials.map((credential) => (
@@ -711,6 +777,13 @@ function App() {
           </div>
         </div>
       </div>
+      <footer className="bg-white border-t mt-8">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm text-gray-500">
+            © 2025 YatriCloud. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
