@@ -107,3 +107,7 @@ To preview the production build, run:
 ```bash
 npm run preview
 ```
+
+## Docker and Docker Compose
+
+For Docker and Docker Compose setup instructions, refer to the [Docker.md](Docker.md) file.
