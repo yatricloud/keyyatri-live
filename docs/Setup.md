@@ -95,7 +95,7 @@ Ensure the following configurations are set up correctly:
 
 To start the development server, run:
 ```bash
-npm run dev
+npm run dev -- --port 5173
 ```
 
 To build the project for production, run:

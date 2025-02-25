@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
+# Create the dist directory
+RUN mkdir -p /app/dist
+
 # Copy the rest of the application code
 COPY . .
 
@@ -29,7 +32,7 @@ COPY --from=build /app/dist ./dist
 RUN npm install -g serve
 
 # Expose the port the application will run on
-EXPOSE 5000
+EXPOSE 5173
 
 # Set the entry point to start the application
-CMD ["serve", "-s", "dist", "-l", "5000"]
+CMD ["serve", "-s", "dist", "-l", "5173"]
