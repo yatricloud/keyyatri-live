@@ -10,6 +10,7 @@ Welcome to the KeyYatri Password Manager documentation. This guide will help you
 - [Contributing](#contributing)
 - [Node.js Documentation](NodeJS.md)
 - [Supabase Documentation](Supabase.md)
+- [Docker Documentation](Docker.md)
 
 ## Introduction
 
