@@ -128,5 +128,5 @@ docker build -t keyyatri-password-manager .
 
 To run the Docker container for the application, use the following command:
 ```bash
-docker run -d -p 5000:5000 keyyatri-password-manager
+docker run -d -p 5173:5173 keyyatri-password-manager
 ```
