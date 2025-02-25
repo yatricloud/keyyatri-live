@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { Lock, Plus, Search, Pencil, Trash2 } from 'lucide-react';
+import { Lock, Plus, Search, Pencil, Trash2, Users } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { CredentialForm } from './components/CredentialForm';
 import { EditCredentialForm } from './components/EditCredentialForm';
@@ -612,6 +612,15 @@ function App() {
             </div>
             {user && (
               <div className="flex items-center">
+                <a
+                  href="https://community.yatricloud.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200"
+                >
+                  <Users className="h-5 w-5 mr-2" />
+                  Join Community
+                </a>
                 <ProfileMenu
                   email={user.email}
                   onEditProfile={() => setShowEditProfile(true)}
