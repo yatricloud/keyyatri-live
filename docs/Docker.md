@@ -1,38 +1,49 @@
-# Docker and Docker Compose in Ubuntu
+## Install Docker on Ubuntu
 
-## Installing Docker
+Follow these steps to install Docker on an Ubuntu system:
 
-To install Docker on Ubuntu, follow these steps:
+### Step 1: Update the package list
+```bash
+sudo apt update
+```
 
-1. Update the apt package index and install packages to allow apt to use a repository over HTTPS:
-   ```bash
-   sudo apt-get update
-   sudo apt-get install \
-     ca-certificates \
-     curl \
-     gnupg \
-     lsb-release
-   ```
+### Step 2: Install required dependencies
+```bash
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+```
 
-2. Add Docker’s official GPG key:
-   ```bash
-   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-   ```
+### Step 3: Add Docker’s official GPG key
+```bash
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+```
 
-3. Set up the stable repository:
-   ```bash
-   echo \
-     "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-     $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-   ```
+### Step 4: Add Docker repository
+```bash
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+```
 
-4. Install Docker Engine:
-   ```bash
-   sudo apt-get update
-   sudo apt-get install docker-ce docker-ce-cli containerd.io
-   ```
+### Step 5: Update package list again
+```bash
+sudo apt update
+```
 
-5. Verify that Docker Engine is installed correctly by running the hello-world image:
+### Step 6: Verify the available Docker versions
+```bash
+apt-cache policy docker-ce
+```
+
+### Step 7: Install Docker
+```bash
+sudo apt install docker-ce
+```
+
+### Step 8: Check Docker status
+```bash
+sudo systemctl status docker
+```
+
+
+### Step 8: Check Docker status Verify that Docker Engine is installed correctly by running the hello-world image:
    ```bash
    sudo docker run hello-world
    ```
