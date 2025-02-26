@@ -348,8 +348,8 @@ function App() {
         return;
       }
 
-      // Delete all user data
       if (user) {
+        // Delete all user data first
         const { error: deleteCredentialsError } = await supabase
           .from('credentials')
           .delete()
@@ -364,9 +364,16 @@ function App() {
 
         if (deleteMasterKeyError) throw deleteMasterKeyError;
 
-        // Delete the user account
-        const { error: deleteUserError } = await supabase.auth.admin.deleteUser(user.id);
-        if (deleteUserError) throw deleteUserError;
+        const { error: deleteFeatureRequestsError } = await supabase
+          .from('feature_requests')
+          .delete()
+          .eq('user_id', user.id);
+
+        if (deleteFeatureRequestsError) throw deleteFeatureRequestsError;
+
+        // Try to delete the user using RPC
+        const { error: selfDeleteError } = await supabase.rpc('delete_user');
+        if (selfDeleteError) throw selfDeleteError;
 
         toast.success('Account deleted successfully');
         handleLogout();
@@ -768,7 +775,7 @@ function App() {
                       <a
                         href={credential.url}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel _rel="noopener noreferrer"
                         className="mt-2 inline-block text-sm text-gray-600 hover:text-gray-900"
                       >
                         {credential.url}
