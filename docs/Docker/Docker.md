@@ -7,34 +7,9 @@ Follow these steps to install Docker on an Ubuntu system:
 sudo apt update
 ```
 
-### Step 2: Install required dependencies
+### Step 1: Install Docker
 ```bash
-sudo apt install apt-transport-https ca-certificates curl software-properties-common
-```
-
-### Step 3: Add Docker’s official GPG key
-```bash
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-```
-
-### Step 4: Add Docker repository
-```bash
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
-```
-
-### Step 5: Update package list again
-```bash
-sudo apt update
-```
-
-### Step 6: Verify the available Docker versions
-```bash
-apt-cache policy docker-ce
-```
-
-### Step 7: Install Docker
-```bash
-sudo apt install docker-ce
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
 ### Step 8: Check Docker status
@@ -45,11 +20,6 @@ sudo systemctl status docker
 ### Step 8: Check Docker status Verify that Docker Engine is installed correctly by running the hello-world image:
 ```bash
 sudo docker run hello-world
-```
-
-### Add Your User to the Docker Group (If you do not want to use sudo)
-```bash
-sudo usermod -aG docker $USER
 ```
 
 
