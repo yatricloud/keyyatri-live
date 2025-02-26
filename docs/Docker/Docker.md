@@ -66,26 +66,29 @@ sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 ```
 
-## Running Docker
+## Building and Running the Application using Docker
 
-To run Docker on Ubuntu, you can use the following commands:
-
-1. Start a Docker container:
+To build the Docker image for the application, use the following command:
 ```bash
-sudo docker run -d -p 80:80 docker/getting-started
+docker build -t keyyatri-password-manager .
 ```
 
-2. List running Docker containers:
+To run the Docker container for the application, use the following command:
+```bash
+docker run -d -p 5173:5173 keyyatri-password-manager
+```
+
+ List running Docker containers:
 ```bash
 sudo docker ps
 ```
 
-3. Stop a running Docker container:
+Stop a running Docker container:
 ```bash
 sudo docker stop <container_id>
 ```
 
-4. Remove a Docker container:
+Remove a Docker container:
 ```bash
 sudo docker rm <container_id>
 ```
@@ -119,14 +122,3 @@ sudo docker-compose down
 sudo docker-compose logs <service_name>
 ```
 
-## Building and Running the Application using Docker
-
-To build the Docker image for the application, use the following command:
-```bash
-docker build -t keyyatri-password-manager .
-```
-
-To run the Docker container for the application, use the following command:
-```bash
-docker run -d -p 5173:5173 keyyatri-password-manager
-```
