@@ -47,6 +47,12 @@ sudo systemctl status docker
 sudo docker run hello-world
 ```
 
+### Add Your User to the Docker Group (If you do not want to use sudo)
+```bash
+sudo usermod -aG docker $USER
+```
+
+
 ## Installing Docker Compose
 
 To install Docker Compose on Ubuntu, follow these steps:
@@ -92,6 +98,40 @@ Remove a Docker container:
 ```bash
 sudo docker rm <container_id>
 ```
+
+# Uninstall Docker from Ubuntu
+
+## Step 1: Remove Docker Packages
+Run the following command to uninstall Docker and related packages:
+
+```sh
+sudo apt-get purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras
+```
+
+## Step 2: Remove Docker Directories
+To delete Docker-related data, run:
+
+```sh
+sudo rm -rf /var/lib/docker
+sudo rm -rf /var/lib/containerd
+```
+
+## Step 3: Verify Docker is Removed
+Check if Docker is still installed:
+
+```sh
+docker --version
+```
+If the command returns "command not found," Docker has been successfully removed.
+
+## Optional: Clean Up Unused Dependencies
+Run the following command to remove any unnecessary packages:
+
+```sh
+sudo apt-get autoremove
+```
+
+This will ensure that all Docker-related dependencies are cleaned up from the system.
 
 ## Running Docker Compose
 
