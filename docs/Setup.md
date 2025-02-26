@@ -1,113 +1,94 @@
-# Project Setup
+# KeyYatri Password Manager Setup Guide
 
 ## Prerequisites
 
-Before you begin, ensure you have met the following requirements:
-- Node.js 14+ installed on your machine
+Before you begin, ensure you have:
+- Node.js 14+ installed
 - A Supabase account
+- Git installed (optional)
 
-## Installation
+## Step 1: Supabase Setup
 
-Follow these steps to set up the project:
+1. Create a new Supabase project:
+   - Go to [Supabase Dashboard](https://app.supabase.com)
+   - Click "New Project"
+   - Enter project details
+   - Wait for the database to be ready
 
-1. **Clone the repository:**
+2. Get your API credentials:
+   - In your project dashboard, go to Settings > API
+   - Copy the `Project URL` and `anon/public` key
+   - You'll need these for the environment variables
+
+3. Set up the database schema:
+   - Go to the SQL Editor in your Supabase dashboard
+   - Run the following migrations in order:
+     - `20250128031258_navy_grass.sql`
+     - `20250224022256_throbbing_bread.sql`
+     - `20250224054210_curly_villa.sql`
+
+## Step 2: Project Setup
+
+1. Clone the repository (or download the source code):
    ```bash
-   git clone https://github.com/YatharthChauhan2362/keyyatri.git
+   git clone https://github.com/your-username/keyyatri.git
    cd keyyatri
    ```
 
-2. **Install dependencies:**
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-3. **Create a Supabase project:**
-   - Go to [Supabase](https://supabase.io/) and create a new project.
-   - Note down the `Supabase URL` and `Supabase Anon Key`.
-
-4. **Set up environment variables:**
-   - Create a `.env` file in the root directory of the project.
-   - Add the following environment variables:
+3. Create environment variables:
+   - Create a `.env` file in the root directory
+   - Add the following variables:
      ```env
-     VITE_SUPABASE_URL=your-supabase-url
-     VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+     VITE_SUPABASE_URL=your-project-url
+     VITE_SUPABASE_ANON_KEY=your-anon-key
      ```
 
-5. **Set up the database:**
-   - Create the following tables in your Supabase database:
-     ```sql
-     -- Create credentials table
-     CREATE TABLE credentials (
-       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-       user_id UUID REFERENCES auth.users(id) NOT NULL,
-       name TEXT NOT NULL,
-       username TEXT NOT NULL,
-       encrypted_password TEXT NOT NULL,
-       description TEXT,
-       url TEXT,
-       created_at TIMESTAMPTZ DEFAULT now(),
-       updated_at TIMESTAMPTZ DEFAULT now()
-     );
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-     -- Enable RLS
-     ALTER TABLE credentials ENABLE ROW LEVEL SECURITY;
+## Step 3: Docker Setup (Optional)
 
-     -- Create policies
-     CREATE POLICY "Users can create their own credentials"
-       ON credentials
-       FOR INSERT
-       TO authenticated
-       WITH CHECK (auth.uid() = user_id);
+If you want to use Docker:
 
-     CREATE POLICY "Users can view their own credentials"
-       ON credentials
-       FOR SELECT
-       TO authenticated
-       USING (auth.uid() = user_id);
+1. Ensure Docker and Docker Compose are installed
 
-     CREATE POLICY "Users can update their own credentials"
-       ON credentials
-       FOR UPDATE
-       TO authenticated
-       USING (auth.uid() = user_id);
+2. Build and run the containers:
+   ```bash
+   docker-compose up --build
+   ```
 
-     CREATE POLICY "Users can delete their own credentials"
-       ON credentials
-       FOR DELETE
-       TO authenticated
-       USING (auth.uid() = user_id);
-     ```
+## Verification
 
-## Configuration
+To verify your setup:
 
-Ensure the following configurations are set up correctly:
+1. Open `http://localhost:5173` in your browser
+2. You should see the login page
+3. Create a new account
+4. Set up your master key
+5. Try adding a new credential
 
-- **Vite Configuration:**
-  - The `vite.config.ts` file should be configured to include the necessary plugins and optimizations.
+## Common Issues
 
-- **ESLint Configuration:**
-  - The `eslint.config.js` file should be set up to lint the project files.
+### Database Connection Issues
+- Verify your Supabase credentials
+- Check if the project URL is correct
+- Ensure your IP is allowed in Supabase
 
-- **Tailwind CSS Configuration:**
-  - The `tailwind.config.js` file should be configured to include the necessary content paths and plugins.
+### Build Issues
+- Clear npm cache: `npm cache clean --force`
+- Delete node_modules and reinstall: 
+  ```bash
+  rm -rf node_modules
+  npm install
+  ```
 
-## Running the Project
-
-To start the development server, run:
-```bash
-npm run dev -- --port 5173
-```
-
-To build the project for production, run:
-```bash
-npm run build
-```
-
-To preview the production build, run:
-```bash
-npm run preview
-```
-
-## Docker and Docker Compose
-
-For Docker and Docker Compose setup instructions, refer to the [Docker.md](Docker.md) file.
+### Docker Issues
+- Ensure ports are not in use
+- Check Docker logs for errors
