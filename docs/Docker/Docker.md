@@ -74,6 +74,16 @@ docker-compose --version
 
 ## Building and Running the Application using Docker
 
+
+# Allow Port 5173 on Your Server
+
+## For UFW (Ubuntu/Debian)
+If your server uses **UFW (Uncomplicated Firewall)**, run:
+```bash
+sudo ufw allow 5173/tcp
+sudo ufw reload
+sudo ufw status
+
 To build the Docker image for the application, use the following command:
 ```bash
 docker build -t keyyatri-password-manager .
@@ -98,6 +108,7 @@ Remove a Docker container:
 ```bash
 sudo docker rm <container_id>
 ```
+
 
 # Uninstall Docker from Ubuntu
 
