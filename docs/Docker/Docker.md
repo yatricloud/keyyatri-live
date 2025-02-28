@@ -95,32 +95,5 @@ sudo apt-get autoremove
 
 This will ensure that all Docker-related dependencies are cleaned up from the system.
 
-## Running Docker Compose
 
-To run Docker Compose on Ubuntu, you can use the following commands:
-
-1. Navigate to the directory containing your `docker-compose.yml` file:
-```bash
-cd /path/to/your/project
-```
-
-2. Start the services defined in the `docker-compose.yml` file:
-```bash
-sudo docker-compose up -d
-```
-
-3. List running Docker Compose services:
-```bash
-sudo docker-compose ps
-```
-
-4. Stop the services defined in the `docker-compose.yml` file:
-```bash
-sudo docker-compose down
-```
-
-5. View the logs of a service:
-```bash
-sudo docker-compose logs <service_name>
-```
 
