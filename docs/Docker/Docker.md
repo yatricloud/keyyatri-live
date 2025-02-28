@@ -23,25 +23,6 @@ sudo docker run hello-world
 ```
 
 
-## Installing Docker Compose
-
-To install Docker Compose on Ubuntu, follow these steps:
-
-1. Download the current stable release of Docker Compose:
-```bash
-sudo curl -L "https://github.com/docker/compose/releases/download/$(sudo curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K.*\d')" /usr/local/bin/docker-compose
-```
-
-2. Apply executable permissions to the binary:
-```bash
-sudo chmod +x /usr/local/bin/docker-compose
-```
-
-3. Verify that Docker Compose is installed correctly:
-```bash
-docker-compose --version
-```
-
 ## Building and Running the Application using Docker
 
 
