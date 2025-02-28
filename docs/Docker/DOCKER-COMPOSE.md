@@ -8,14 +8,9 @@ sudo apt update
 sudo apt install docker-compose-plugin -y
 ```
 
-2. Apply executable permissions to the binary:
+2. Verify that Docker Compose is installed correctly:
 ```bash
-sudo chmod +x /usr/local/bin/docker-compose
-```
-
-3. Verify that Docker Compose is installed correctly:
-```bash
-docker-compose --version
+docker compose version
 ```
 
 ## Running Docker Compose
