@@ -10,19 +10,5 @@ services:
     environment:
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
-    depends_on:
-      - db
     restart: always
 
-  db:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    restart: always
-
-volumes:
-  db_data:
