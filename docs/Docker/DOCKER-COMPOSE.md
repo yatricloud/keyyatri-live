@@ -1,43 +1,65 @@
-## Installing Docker Compose
+# **Installing Docker Compose on Ubuntu**  
 
-To install Docker Compose on Ubuntu, follow these steps:
+To install Docker Compose on Ubuntu, follow these steps:  
 
-1. Download the current stable release of Docker Compose:
+### **1⃣ Install Docker Compose**  
 ```bash
 sudo apt update
 sudo apt install docker-compose-plugin -y
 ```
 
-2. Verify that Docker Compose is installed correctly:
+### **2⃣ Verify Installation**  
 ```bash
 docker compose version
 ```
 
-## Running Docker Compose
+---
 
-To run Docker Compose on Ubuntu, you can use the following commands:
+# **Running Docker Compose**  
 
-1. Navigate to the directory containing your `docker-compose.yml` file:
+### **1⃣ Navigate to Your Project Directory**  
 ```bash
 cd /path/to/your/project
 ```
 
-2. Start the services defined in the `docker-compose.yml` file:
+### **2⃣ Build and Start Services**  
 ```bash
-sudo docker compose up -d
+sudo docker compose up -d --build
 ```
+- `-d` → Runs in detached mode (background).  
+- `--build` → Rebuilds containers from the latest code.  
 
-3. List running Docker Compose services:
+### **3⃣ List Running Services**  
 ```bash
 sudo docker compose ps
 ```
 
-4. Stop the services defined in the `docker-compose.yml` file:
+### **4⃣ Stop and Remove Containers**  
 ```bash
 sudo docker compose down
 ```
+- Stops and removes all running containers.  
 
-5. View the logs of a service:
+### **5⃣ View Logs of a Specific Service**  
 ```bash
-sudo docker compose logs <service_name>
+sudo docker compose logs -f <service_name>
 ```
+- `-f` → Follows the logs in real-time.  
+
+### **6⃣ Restart All Services**  
+```bash
+sudo docker compose restart
+```
+
+### **7⃣ Execute a Command Inside a Running Container**  
+```bash
+sudo docker compose exec <service_name> bash
+```
+- Opens a shell inside the container for debugging.  
+
+### **8⃣ List All Containers (Even Stopped Ones)**  
+```bash
+sudo docker compose ps -a
+```
+
+---
