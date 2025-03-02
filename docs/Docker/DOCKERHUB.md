@@ -31,3 +31,54 @@ docker run -d -p 5173:5173 yatricloud/keyyaatri-image:latest
 ```bash
 sudo docker ps
 ```
+
+## Additional Docker Hub Commands
+
+# List all Docker images
+```bash
+docker images
+```
+
+# Remove a specific Docker image
+```bash
+docker rmi <image_id>
+```
+
+# Remove all unused Docker images
+```bash
+docker image prune -a
+```
+
+# List all Docker containers (running and stopped)
+```bash
+docker ps -a
+```
+
+# Remove all stopped containers
+```bash
+docker container prune
+```
+
+# Check Docker Hub repository tags
+```bash
+docker search keyyaatri-image
+```
+
+# View Docker logs of a container
+```bash
+docker logs <container_id>
+```
+
+# Show container details (Inspect)
+```bash
+docker inspect <container_id>
+```
+
+# Show running processes inside a container
+```bash
+docker top <container_id>
+```
+
+# Enter a running container
+```bash
+docker exec -it <container_id> /bin/bash
