@@ -1,0 +1,9 @@
+# Azure Static Web Apps configuration
+# For more information, visit: https://aka.ms/swadocs
+
+name: keyyatri-app
+api_location: ""
+output_location: "dist"
+app_build_command: "npm run build"
+api_build_command: ""
+app_location: "/"

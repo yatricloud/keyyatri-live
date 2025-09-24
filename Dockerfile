@@ -1,5 +1,5 @@
-# Use an official Node.js image
-FROM node:18-alpine
+# Build stage
+FROM node:18-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -13,8 +13,28 @@ RUN npm install
 # Copy the entire project files into the container
 COPY . .
 
-# Expose port 5173 for Vite
-EXPOSE 5173
+# Build the app for production
+RUN npm run build
 
-# Start the Vite development server with --host
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Production stage
+FROM nginx:alpine
+
+# Copy the built app from the builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom nginx config (optional, for SPA routing)
+RUN echo 'server { \
+    listen 80; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
