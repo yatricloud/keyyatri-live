@@ -13,9 +13,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "serve": "node serve.js",
-    "start": "npm run build && npm run serve",
-    "azure-build": "npm run build",
-    "postinstall": "npm run build"
+    "start": "node startup.js",
+    "azure-build": "npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.7",
