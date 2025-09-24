@@ -12,4 +12,17 @@ export default defineConfig({
     port: 5173,       // Ensure it's running on the correct port
     strictPort: true, // Prevent Vite from changing ports
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          supabase: ['@supabase/supabase-js'],
+        },
+      },
+    },
+  },
 });

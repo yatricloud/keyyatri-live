@@ -13,7 +13,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "serve": "node serve.js",
-    "start": "node startup.js",
+    "start": "node deploy-static.js",
     "azure-build": "npm run build"
   },
   "dependencies": {
